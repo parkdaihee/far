@@ -177,7 +177,7 @@ const posts = [
     title: '기말고사 팀프로젝트 입니다.',
     href: '#',
     description: '팀원들과 제작한 중고거래 플랫폼 사이트 입니다.',
-    date: 'Dec 2, 2024',
+    date: 'Dec 6, 2024',
     datetime: '2021-04-05',
     category: {
       title: 'Next Js',
@@ -197,16 +197,16 @@ const posts = [
     href: '#',
     description:
       '아마존에서 api를 가져오는게 신기 했고 많은 점들을 배웠습니다.',
-    date: 'Dec 2, 2024',
+    date: 'Dec 10, 2024',
     datetime: '2021-04-05',
     category: {
       title: 'Next Js',
-      href: 'https://crud-ohjyuku43-parkdaihees-projects.vercel.app/',
+      href: 'https://amazonemall-ibczrmx9o-parkdaihees-projects.vercel.app/',
     },
     author: {
       name: 'First Next Js Website',
       role: 'Next Js',
-      href: 'https://crud-ohjyuku43-parkdaihees-projects.vercel.app/',
+      href: 'https://amazonemall-ibczrmx9o-parkdaihees-projects.vercel.app/',
       imageUrl: '/6.png',
     },
   },
