@@ -14,7 +14,7 @@ export default function SeoulWeather() {
   const [error, setError] = useState<string | null>(null)
 
   const API_ENDPOINT =
-    'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst'
+    'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst'
   const API_KEY =
     'xSclGfnfd44ErGXkGsukDq3m6lmLu1I5pJI61hQ%2FyjAJPohjb5FUKy9VuqfuPYndCxDpwpyMrjM%2FVIN7Eq3GFA%3D%3D'
 
