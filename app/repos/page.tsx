@@ -1,170 +1,227 @@
-import { CheckIcon } from '@heroicons/react/20/solid'
+'use client'
 
-type Tier = {
-  name: string
-  id: string
-  href: string
-  priceMonthly: string
-  description: string
-  features: string[]
-  featured: boolean
-}
+import React, { useState, useEffect } from 'react'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
-const tiers: Tier[] = [
-  {
-    name: 'Apple Music',
-    id: 'tier-hobby',
-    href: 'https://music.apple.com/kr/new',
-    priceMonthly: '₩8,900',
-    description:
-      '자신에게 맞는 요금제 선택하기. 무약정으로 부담 없이. 해지는 언제든지.',
-    features: [
-      '1억 곡의 음악 및 전문가가 엄선한 30,000개 이상의 플레이리스트',
-      'Siri에게 간단히 요청하거나 ‘타이핑으로 Siri 사용’을 이용해 모든 노래, 앨범, 플레이리스트 또는 스테이션 재생',
-      '약정 없는 무료 체험',
-      '광고 없는 스트리밍',
-    ],
-    featured: false,
-  },
-  {
-    name: 'Netflix',
-    id: 'tier-enterprise',
-    href: 'https://www.netflix.com/kr/',
-    priceMonthly: '₩17,000',
-    description:
-      'Netflix 프리미엄으로 가족과 함께 4K(UHD) + HDR 화질을 체험해 보세요.',
-    features: [
-      '4K(UHD) + HDR',
-      '4명',
-      '4개 디바이스',
-      '광고 없음',
-      '추가 회원 2명 가능',
-      'TV, 컴퓨터, 스마트폰, 태블릿',
-    ],
-    featured: true,
-  },
-]
+export default function SeoulWeather() {
+  const [weatherData, setWeatherData] = useState<Record<string, string> | null>(
+    null
+  )
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-function classNames(...classes: (string | undefined | null)[]) {
-  return classes.filter(Boolean).join(' ')
-}
+  const API_ENDPOINT =
+    'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst'
+  const API_KEY =
+    'xSclGfnfd44ErGXkGsukDq3m6lmLu1I5pJI61hQ%2FyjAJPohjb5FUKy9VuqfuPYndCxDpwpyMrjM%2FVIN7Eq3GFA%3D%3D'
 
-export default function Pricing() {
-  return (
-    <div className="relative isolate bg-white px-6 py-24 sm:py-32 lg:px-8">
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 -top-3 -z-10 transform-gpu overflow-hidden px-36 blur-3xl"
-      >
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="mx-auto aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30"
-        />
-      </div>
-      <div className="mx-auto max-w-2xl text-center lg:max-w-4xl">
-        <h2 className="text-base font-semibold leading-7 text-indigo-600">
-          Subscription
-        </h2>
-        <p className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-          OTT service I subscribe to
-        </p>
-      </div>
-      <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-600">
-        현재 저는 넷플릭스의 다양한 콘텐츠와 애플 뮤직의 풍부한 음악을 즐기며,
-        문화와 예술의 향연에 푹 빠져 있습니다. 이 두 플랫폼 덕분에 일상이 더욱
-        특별해지고, 다양한 이야기와 멜로디로 영감을 얻고 있습니다.
+  const fetchWeatherData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const now = new Date()
+      const baseDate = `${now.getFullYear()}${String(
+        now.getMonth() + 1
+      ).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}` // YYYYMMDD
+      const minutes = Math.floor(now.getMinutes() / 10) * 10 // 10분 단위
+      const baseTime = `${String(now.getHours()).padStart(2, '0')}${String(
+        minutes
+      ).padStart(2, '0')}` // HHMM
+
+      const nx = 60 // X 좌표
+      const ny = 127 // Y 좌표
+
+      const url = `${API_ENDPOINT}?serviceKey=${API_KEY}&pageNo=1&numOfRows=10&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`
+
+      const response = await fetch(url)
+      if (!response.ok) {
+        console.error('API 응답 실패:', response.status, response.statusText)
+        throw new Error('날씨 데이터를 가져오는 데 실패했습니다.')
+      }
+
+      const data = await response.json()
+      console.log('API 응답 데이터:', data)
+
+      const items = data?.response?.body?.items?.item
+      if (!items || !Array.isArray(items)) {
+        throw new Error('유효한 날씨 데이터가 없습니다.')
+      }
+
+      const weatherInfo = items.reduce(
+        (acc: Record<string, string>, item: any) => {
+          acc[item.category] = item.obsrValue
+          return acc
+        },
+        {}
+      )
+
+      setWeatherData(weatherInfo)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '알 수 없는 오류 발생')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchWeatherData()
+  }, [])
+
+  useEffect(() => {
+    if (!weatherData) return
+
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://demotiles.maplibre.org/style.json',
+      center: [126.978, 37.5665], // 서울 좌표
+      zoom: 14,
+    })
+
+    new maplibregl.Marker()
+      .setLngLat([126.978, 37.5665])
+      .setPopup(
+        new maplibregl.Popup().setHTML(
+          `<b>서울</b><br/>기온: ${weatherData.T1H}°C<br/>습도: ${weatherData.REH}%`
+        )
+      )
+      .addTo(map)
+
+    return () => map.remove()
+  }, [weatherData])
+
+  if (loading) {
+    return <p style={styles.loading}>날씨 데이터를 가져오는 중입니다...</p>
+  }
+
+  if (error) {
+    return <p style={styles.error}>에러 발생: {error}</p>
+  }
+
+  if (!weatherData) {
+    return (
+      <p style={styles.error}>
+        날씨 데이터가 없습니다. 잠시 후 다시 시도해주세요.
       </p>
-      <div className="mx-auto mt-16 grid max-w-lg grid-cols-1 items-center gap-y-6 sm:mt-20 sm:gap-y-0 lg:max-w-4xl lg:grid-cols-2">
-        {tiers.map((tier, tierIdx) => (
-          <div
-            key={tier.id}
-            className={classNames(
-              tier.featured
-                ? 'relative bg-gray-900 shadow-2xl'
-                : 'bg-white/60 sm:mx-8 lg:mx-0',
-              tier.featured
-                ? ''
-                : tierIdx === 0
-                ? 'rounded-t-3xl sm:rounded-b-none lg:rounded-bl-3xl lg:rounded-tr-none'
-                : 'sm:rounded-t-none lg:rounded-bl-none lg:rounded-tr-3xl',
-              'rounded-3xl p-8 ring-1 ring-gray-900/10 sm:p-10'
-            )}
-          >
-            <h3
-              id={tier.id}
-              className={classNames(
-                tier.featured ? 'text-indigo-400' : 'text-indigo-600',
-                'text-base font-semibold leading-7'
-              )}
-            >
-              {tier.name}
-            </h3>
-            <p className="mt-4 flex items-baseline gap-x-2">
-              <span
-                className={classNames(
-                  tier.featured ? 'text-white' : 'text-gray-900',
-                  'text-5xl font-bold tracking-tight'
-                )}
-              >
-                {tier.priceMonthly}
-              </span>
-              <span
-                className={classNames(
-                  tier.featured ? 'text-gray-400' : 'text-gray-500',
-                  'text-base'
-                )}
-              >
-                /month
-              </span>
-            </p>
-            <p
-              className={classNames(
-                tier.featured ? 'text-gray-300' : 'text-gray-600',
-                'mt-6 text-base leading-7'
-              )}
-            >
-              {tier.description}
-            </p>
-            <ul
-              role="list"
-              className={classNames(
-                tier.featured ? 'text-gray-300' : 'text-gray-600',
-                'mt-8 space-y-3 text-sm leading-6 sm:mt-10'
-              )}
-            >
-              {tier.features.map((feature) => (
-                <li key={feature} className="flex gap-x-3">
-                  <CheckIcon
-                    aria-hidden="true"
-                    className={classNames(
-                      tier.featured ? 'text-indigo-400' : 'text-indigo-600',
-                      'h-6 w-5 flex-none'
-                    )}
-                  />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            <a
-              href={tier.href} // Use the href from the tier object
-              target="_blank" // 새 탭에서 열기
-              rel="noopener noreferrer" // 보안 강화
-              aria-describedby={tier.id}
-              className={classNames(
-                tier.featured
-                  ? 'bg-indigo-500 text-white shadow-sm hover:bg-indigo-400 focus-visible:outline-indigo-500'
-                  : 'text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300 focus-visible:outline-indigo-600',
-                'mt-8 block rounded-md px-3.5 py-2.5 text-center text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:mt-10'
-              )}
-            >
-              Get started today
-            </a>
+    )
+  }
+
+  const backgroundGif =
+    {
+      '0': '/clearday.gif',
+      '1': '/rainy.gif',
+      '3': '/snowy.gif',
+    }[weatherData.PTY] || '/clearday.gif'
+
+  return (
+    <div
+      style={{ ...styles.container, backgroundImage: `url(${backgroundGif})` }}
+    >
+      <header style={styles.header}>
+        <h1 style={styles.title}>서울 날씨 정보</h1>
+        <p>기상청 초단기 실황 데이터</p>
+        <p>(10분마다 업데이트)</p>
+      </header>
+      <section style={styles.weatherSection}>
+        <h2 style={styles.subtitle}>현재 날씨</h2>
+        <div style={styles.weatherDetails}>
+          <div style={styles.weatherItem}>
+            <span>기온</span>
+            <span>{weatherData.T1H}°C</span>
           </div>
-        ))}
-      </div>
+          <div style={styles.weatherItem}>
+            <span>습도</span>
+            <span>{weatherData.REH}%</span>
+          </div>
+          <div style={styles.weatherItem}>
+            <span>강수 형태</span>
+            <span>
+              {{ '0': '맑음', '1': '비', '3': '눈' }[weatherData.PTY] ||
+                '알 수 없음'}
+            </span>
+          </div>
+          <div style={styles.weatherItem}>
+            <span>풍속</span>
+            <span>{weatherData.WSD}m/s</span>
+          </div>
+        </div>
+      </section>
+      <section style={styles.mapSection}>
+        <h2 style={styles.subtitle}>서울 위치</h2>
+        <div id='map' style={styles.map}></div>
+      </section>
+      <footer style={styles.footer}>
+        <p>데이터 제공: 기상청</p>
+      </footer>
     </div>
   )
+}
+
+const styles = {
+  container: {
+    fontFamily: 'Arial, sans-serif',
+    color: '#333',
+    margin: 0,
+    padding: 0,
+    textAlign: 'center' as const,
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    minHeight: '100vh',
+    width: '100vw',
+  },
+  header: {
+    marginBottom: '20px',
+    background: '#0078ff',
+    color: '#fff',
+    padding: '20px',
+    borderRadius: '8px',
+  },
+  title: {
+    fontSize: '28px',
+    fontWeight: 'bold' as const,
+  },
+  weatherSection: {
+    margin: '20px 0',
+  },
+  subtitle: {
+    fontSize: '22px',
+    fontWeight: 'bold' as const,
+    marginBottom: '10px',
+  },
+  weatherDetails: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '15px',
+    margin: '10px',
+  },
+  weatherItem: {
+    background: '#eaf4ff',
+    padding: '15px',
+    borderRadius: '8px',
+    textAlign: 'center' as const,
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+  },
+  mapSection: {
+    margin: '30px 0',
+  },
+  map: {
+    height: '600px',
+    width: '100%',
+    borderRadius: '8px',
+  },
+  footer: {
+    marginTop: '20px',
+    fontSize: '14px',
+    color: '#666',
+  },
+  loading: {
+    color: '#555',
+    fontSize: '18px',
+  },
+  error: {
+    color: 'red',
+    fontSize: '18px',
+  },
 }
