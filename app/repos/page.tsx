@@ -78,7 +78,7 @@ export default function SeoulWeather() {
       container: 'map',
       style: 'https://demotiles.maplibre.org/style.json',
       center: [126.978, 37.5665], // 서울 좌표
-      zoom: 14,
+      zoom: 4,
     })
 
     new maplibregl.Marker()
