@@ -114,6 +114,7 @@ const App = () => {
         backgroundColor: '#f0f4f8',
         minHeight: '100vh',
         padding: '20px',
+
         display: 'flex',
         flexDirection: 'column',
         gap: '20px',

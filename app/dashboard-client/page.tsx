@@ -3,20 +3,26 @@ import Image from 'next/image'
 const posts = [
   {
     id: 1,
-    title: '7개월전 처음 제작했던 개인 홈페이지 포트폴리오 입니다.',
+    title: (
+      <span style={{ color: 'blue' }}>나의 전체 적인 소개 포트폴리오</span>
+    ),
     href: '#',
     description:
-      '처음 제작 했던 만큼 미숙했고 홈페이지의 색깔 변경 이나, 각종 HTML 동영상들이 들어가 있습니다.',
-    date: 'Mar 25, 2024',
+      '2학년 2학기 중간고사 프로젝트로 나에 소개 포트폴리오 등이 포함 되어 있습니다.',
+    date: 'Oct 25, 2024',
     datetime: '2021-04-05',
-    category: { title: 'First Homepage', href: 'https://hcj-1.vercel.app/' },
+    category: {
+      title: 'Next Js',
+      href: 'https://clerk-api-beige.vercel.app/',
+    },
     author: {
-      name: 'First Homepage',
-      role: 'HTML / CSS',
-      href: 'https://hcj-1.vercel.app/',
-      imageUrl: '/1.png',
+      name: 'First Next Js Website',
+      role: 'Next Js',
+      href: 'https://clerk-api-beige.vercel.app/',
+      imageUrl: '/8.png',
     },
   },
+
   {
     id: 2,
     title:
@@ -135,21 +141,18 @@ const posts = [
 
   {
     id: 8,
-    title: '2학년 2학기 중간고사 프로젝트 입니다.',
+    title: '7개월전 처음 제작했던 개인 홈페이지 포트폴리오 입니다.',
     href: '#',
     description:
-      '중간고사 프로젝트로 나에 소개 포트폴리오 등이 포함 되어 있습니다.',
-    date: 'Oct 25, 2024',
+      '처음 제작 했던 만큼 미숙했고 홈페이지의 색깔 변경 이나, 각종 HTML 동영상들이 들어가 있습니다.',
+    date: 'Mar 25, 2024',
     datetime: '2021-04-05',
-    category: {
-      title: 'Next Js',
-      href: 'https://clerk-api-beige.vercel.app/',
-    },
+    category: { title: 'First Homepage', href: 'https://hcj-1.vercel.app/' },
     author: {
-      name: 'First Next Js Website',
-      role: 'Next Js',
-      href: 'https://clerk-api-beige.vercel.app/',
-      imageUrl: '/8.png',
+      name: 'First Homepage',
+      role: 'HTML / CSS',
+      href: 'https://hcj-1.vercel.app/',
+      imageUrl: '/1.png',
     },
   },
   {
@@ -192,7 +195,7 @@ const posts = [
   },
 
   {
-    id: 9,
+    id: 11,
     title: '2학년 2학기 마지막에 제작한 쇼핑몰 사이트 입니다.',
     href: '#',
     description:
@@ -221,7 +224,8 @@ export default function Portfolio() {
             Personal Portfolio
           </h2>
           <p className='mt-2 text-lg leading-8 text-gray-600'>
-            지금까지 배우고 만들었던 포트폴리오 내용들입니다.
+            지금까지 배우고 만들었던 포트폴리오 내용들입니다. <br />
+            <strong>그림 클릭시 해당 페이지로 이동합니다.</strong>
           </p>
         </div>
         <div className='mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3'>
