@@ -4,11 +4,11 @@ const posts = [
   {
     id: 1,
     title: (
-      <span style={{ color: 'blue' }}>나의 전체 적인 소개 포트폴리오</span>
+      <span style={{ color: 'blue' }}>박대희의 개인 소개 포트폴리오</span>
     ),
     href: '#',
     description:
-      '2학년 2학기 중간고사 프로젝트로 나에 소개 포트폴리오 등이 포함 되어 있습니다.',
+      '개인 소개 포트폴리오 입니다.',
     date: 'Oct 25, 2024',
     datetime: '2021-04-05',
     category: {
