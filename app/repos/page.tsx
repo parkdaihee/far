@@ -13,29 +13,17 @@ export default function SeoulWeather() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const API_ENDPOINT =
-    'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst'
-  const API_KEY =
-    'xSclGfnfd44ErGXkGsukDq3m6lmLu1I5pJI61hQ%2FyjAJPohjb5FUKy9VuqfuPYndCxDpwpyMrjM%2FVIN7Eq3GFA%3D%3D'
+  // OpenWeather API 정보
+  const API_KEY = '4c8fb93b5fd26c0a0a6d27bfc9a77791'
+  const API_ENDPOINT = `https://api.openweathermap.org/data/2.5/weather`
 
   const fetchWeatherData = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const now = new Date()
-      const baseDate = `${now.getFullYear()}${String(
-        now.getMonth() + 1
-      ).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}` // YYYYMMDD
-      const minutes = Math.floor(now.getMinutes() / 10) * 10 // 10분 단위
-      const baseTime = `${String(now.getHours()).padStart(2, '0')}${String(
-        minutes
-      ).padStart(2, '0')}` // HHMM
-
-      const nx = 60 // X 좌표
-      const ny = 127 // Y 좌표
-
-      const url = `${API_ENDPOINT}?serviceKey=${API_KEY}&pageNo=1&numOfRows=10&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`
+      const cityName = 'Seoul'
+      const url = `${API_ENDPOINT}?q=${cityName}&appid=${API_KEY}&units=metric`
 
       const response = await fetch(url)
       if (!response.ok) {
@@ -46,18 +34,12 @@ export default function SeoulWeather() {
       const data = await response.json()
       console.log('API 응답 데이터:', data)
 
-      const items = data?.response?.body?.items?.item
-      if (!items || !Array.isArray(items)) {
-        throw new Error('유효한 날씨 데이터가 없습니다.')
+      const weatherInfo = {
+        T1H: data.main.temp.toFixed(1), // 현재 기온
+        REH: data.main.humidity, // 습도
+        PTY: data.weather[0].main, // 날씨 상태 (맑음, 비, 눈 등)
+        WSD: data.wind.speed.toFixed(1), // 풍속
       }
-
-      const weatherInfo = items.reduce(
-        (acc: Record<string, string>, item: any) => {
-          acc[item.category] = item.obsrValue
-          return acc
-        },
-        {}
-      )
 
       setWeatherData(weatherInfo)
     } catch (err) {
@@ -78,14 +60,14 @@ export default function SeoulWeather() {
       container: 'map',
       style: 'https://demotiles.maplibre.org/style.json',
       center: [126.978, 37.5665], // 서울 좌표
-      zoom: 4,
+      zoom: 5,
     })
 
     new maplibregl.Marker()
       .setLngLat([126.978, 37.5665])
       .setPopup(
         new maplibregl.Popup().setHTML(
-          `<b>서울</b><br/>기온: ${weatherData.T1H}°C<br/>습도: ${weatherData.REH}%`
+          `<b>서울</b><br/>기온: ${weatherData.T1H}°C<br/>습도: ${weatherData.REH}%<br/>날씨: ${weatherData.PTY}`
         )
       )
       .addTo(map)
@@ -111,9 +93,10 @@ export default function SeoulWeather() {
 
   const backgroundGif =
     {
-      '0': '/clearday.gif',
-      '1': '/rainy.gif',
-      '3': '/snowy.gif',
+      Clear: '/clearday.gif',
+      Rain: '/rainy.gif',
+      Snow: '/snowy.gif',
+      Clouds: '/cloudy.gif',
     }[weatherData.PTY] || '/clearday.gif'
 
   return (
@@ -122,8 +105,7 @@ export default function SeoulWeather() {
     >
       <header style={styles.header}>
         <h1 style={styles.title}>서울 날씨 정보</h1>
-        <p>기상청 초단기 실황 데이터</p>
-        <p>(10분마다 업데이트)</p>
+        <p>OpenWeather 데이터를 기반으로 한 실시간 날씨</p>
       </header>
       <section style={styles.weatherSection}>
         <h2 style={styles.subtitle}>현재 날씨</h2>
@@ -137,11 +119,8 @@ export default function SeoulWeather() {
             <span>{weatherData.REH}%</span>
           </div>
           <div style={styles.weatherItem}>
-            <span>강수 형태</span>
-            <span>
-              {{ '0': '맑음', '1': '비', '3': '눈' }[weatherData.PTY] ||
-                '알 수 없음'}
-            </span>
+            <span>날씨</span>
+            <span>{weatherData.PTY}</span>
           </div>
           <div style={styles.weatherItem}>
             <span>풍속</span>
@@ -154,7 +133,7 @@ export default function SeoulWeather() {
         <div id='map' style={styles.map}></div>
       </section>
       <footer style={styles.footer}>
-        <p>데이터 제공: 기상청</p>
+        <p>데이터 제공: OpenWeather</p>
       </footer>
     </div>
   )
